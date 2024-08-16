@@ -25,7 +25,7 @@ const userSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const videoSchema = new Schema(
@@ -48,7 +48,7 @@ const videoSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = model("User", userSchema);
