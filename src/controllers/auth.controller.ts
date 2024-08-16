@@ -62,6 +62,7 @@ const LoginUser = async (req: Request, res: Response) => {
       user: {
         fullname,
         email: UserRecord.email,
+        phone: UserRecord.phone,
       },
       token: token,
       message: "logged in successfully",
