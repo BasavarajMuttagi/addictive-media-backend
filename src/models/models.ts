@@ -28,28 +28,36 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
-const videoSchema = new Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
-    videoUrl: {
-      type: String,
-      required: true,
-    },
-    thumbnailUrl: {
-      type: String,
-      required: true,
-    },
+const videoSchema = new Schema({
+  key: {
+    type: String,
+    required: true,
   },
-  { timestamps: true },
-);
+  filename: {
+    type: String,
+    required: true,
+  },
+  filetype: {
+    type: String,
+    required: true,
+  },
+  userid: {
+    type: String,
+    required: true,
+  },
+  filesize: {
+    type: Number,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: false,
+  },
+  title: {
+    type: String,
+    required: false,
+  },
+});
 
 const User = model("User", userSchema);
 const Video = model("Video", videoSchema);
