@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import { sign } from "jsonwebtoken";
-import { SECRET_SALT } from "../..";
+import { s3Client, SECRET_SALT } from "../..";
 import { User } from "../models/models";
 import { UserSignUpType, UserLoginType } from "../zod/schema";
+import { tokenType } from "../middlewares/auth.middleware";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const SignUpUser = async (req: Request, res: Response) => {
   try {
@@ -75,4 +78,87 @@ const LoginUser = async (req: Request, res: Response) => {
   }
 };
 
-export { SignUpUser, LoginUser };
+const UpdateUserBio = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body.user as tokenType;
+    const { bio } = req.body;
+    console.log(bio);
+    if (!bio) {
+      return res.status(400).json({ error: "Bio is required" });
+    }
+    const updatedUser = await User.findByIdAndUpdate(userId, { $set: { bio } });
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ message: "Error Occured , Please Try Again!" });
+  }
+};
+
+const UpdatePhotoUrl = async (req: Request, res: Response) => {
+  try {
+    const { key, metadata } = req.body;
+    const photoUrl = key;
+    await User.findByIdAndUpdate(metadata.userId, {
+      $set: { photoUrl },
+    });
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    return res.status(500);
+  }
+};
+
+const GetPresignedUrlForPhoto = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body.user as tokenType;
+    const { fileName, fileType, fileSize } = req.body;
+
+    if (!userId || !fileName || !fileType || !fileSize) {
+      return res.status(400).json({
+        error: "userId, fileName, fileType, and fileSize are required",
+      });
+    }
+    const MAX_IMAGE_SIZE = 1 * 1024 * 1024;
+    const isVideo = fileType.startsWith("image/");
+
+    const metadata = {
+      userId,
+      fileName,
+      fileType,
+      fileSize: fileSize.toString(),
+    };
+    if (isVideo && fileSize > MAX_IMAGE_SIZE) {
+      return res
+        .status(400)
+        .json({ error: "Image size exceeds the 1 MB limit" });
+    }
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET!,
+      Key: `${userId}/${fileName}`,
+      ContentType: fileType,
+      ContentLength: fileSize,
+      Metadata: metadata,
+    });
+
+    const url = await getSignedUrl(s3Client, command, {
+      expiresIn: 3600,
+    });
+    return res.status(200).json({ url });
+  } catch (error) {
+    console.error("Error generating presigned URL:", error);
+    return res.sendStatus(500);
+  }
+};
+export {
+  SignUpUser,
+  LoginUser,
+  UpdateUserBio,
+  UpdatePhotoUrl,
+  GetPresignedUrlForPhoto,
+};

@@ -5,7 +5,7 @@ import { tokenType } from "../middlewares/auth.middleware";
 import { Request, Response } from "express";
 import { Video } from "../models/models";
 
-const getPresignedUrl = async (req: Request, res: Response) => {
+const GetPresignedUrl = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body.user as tokenType;
     const { fileName, fileType, fileSize, title, description } = req.body;
@@ -50,10 +50,10 @@ const getPresignedUrl = async (req: Request, res: Response) => {
   }
 };
 
-const createVideo = async (req: Request, res: Response) => {
+const CreateVideo = async (req: Request, res: Response) => {
   try {
     const { key, metadata } = req.body;
-    const record = await Video.create({ ...metadata, key });
+    const record = await Video.create({ ...metadata, folder: key });
     console.log(record);
     return res.sendStatus(200);
   } catch (error) {
@@ -61,4 +61,17 @@ const createVideo = async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 };
-export { getPresignedUrl, createVideo };
+
+const GetUserVideos = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body.user as tokenType;
+    const videos = await Video.find({ userid: userId }).sort({ createdAt: -1 });
+    return res.status(200).json(videos);
+  } catch (error) {
+    console.error("Error fetching user videos:", error);
+    return res
+      .status(500)
+      .send({ message: "Error Occured , Please Try Again!", error });
+  }
+};
+export { GetPresignedUrl, CreateVideo, GetUserVideos };

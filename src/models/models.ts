@@ -24,12 +24,18 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    photoUrl: {
+      type: String,
+    },
+    bio: {
+      type: String,
+    },
   },
   { timestamps: true },
 );
 
 const videoSchema = new Schema({
-  key: {
+  folder: {
     type: String,
     required: true,
   },

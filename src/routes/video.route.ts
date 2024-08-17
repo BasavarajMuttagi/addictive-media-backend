@@ -1,10 +1,15 @@
 import express from "express";
 import { validateToken } from "../middlewares/auth.middleware";
-import { createVideo, getPresignedUrl } from "../controllers/video.controller";
+import {
+  CreateVideo,
+  GetPresignedUrl,
+  GetUserVideos,
+} from "../controllers/video.controller";
 
 const VideoRouter = express.Router();
 
-VideoRouter.post("/getPresignedUrl", validateToken, getPresignedUrl);
-VideoRouter.post("/create", createVideo);
+VideoRouter.post("/getPresignedUrl", validateToken, GetPresignedUrl);
+VideoRouter.post("/create", CreateVideo);
+VideoRouter.get("/list", validateToken, GetUserVideos);
 
 export default VideoRouter;
