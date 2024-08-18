@@ -194,12 +194,12 @@ const GetProfile = async (req: Request, res: Response) => {
     const { userId } = req.body.user as tokenType;
 
     const user = await User.findById(userId).select(
-      "-__v -updatedAt -password",
+      "-__v -updatedAt -password -createdAt",
     );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    return res.status(200).json({ user });
+    return res.status(200).json(user);
   } catch (error) {
     console.log(error);
     return res
@@ -212,11 +212,13 @@ const GetProfileByID = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
 
-    const user = await User.findById(id).select("-__v -updatedAt -password");
+    const user = await User.findById(id).select(
+      "-__v -updatedAt -password -createdAt",
+    );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    return res.status(200).json({ user });
+    return res.status(200).json(user);
   } catch (error) {
     console.log(error);
     return res

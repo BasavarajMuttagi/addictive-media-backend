@@ -59,7 +59,7 @@ app.post("/poll/image", validateToken, (req: Request, res: Response) => {
   const imageIndex = imageStore.findIndex(
     (image) =>
       image.filename === filename &&
-      image.filesize === filesize &&
+      image.filesize === filesize.toString() &&
       image.userid === userId,
   );
 
