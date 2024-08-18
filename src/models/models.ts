@@ -34,36 +34,39 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
-const videoSchema = new Schema({
-  folder: {
-    type: String,
-    required: true,
+const videoSchema = new Schema(
+  {
+    folder: {
+      type: String,
+      required: true,
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    filetype: {
+      type: String,
+      required: true,
+    },
+    userid: {
+      type: String,
+      required: true,
+    },
+    filesize: {
+      type: Number,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: false,
+    },
+    title: {
+      type: String,
+      required: false,
+    },
   },
-  filename: {
-    type: String,
-    required: true,
-  },
-  filetype: {
-    type: String,
-    required: true,
-  },
-  userid: {
-    type: String,
-    required: true,
-  },
-  filesize: {
-    type: Number,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: false,
-  },
-  title: {
-    type: String,
-    required: false,
-  },
-});
+  { timestamps: true },
+);
 
 const User = model("User", userSchema);
 const Video = model("Video", videoSchema);

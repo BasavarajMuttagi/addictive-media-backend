@@ -1,6 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { s3Client } from "../..";
+import { s3Client, videoStore } from "../..";
 import { tokenType } from "../middlewares/auth.middleware";
 import { Request, Response } from "express";
 import { Video } from "../models/models";
@@ -53,8 +53,12 @@ const GetPresignedUrl = async (req: Request, res: Response) => {
 const CreateVideo = async (req: Request, res: Response) => {
   try {
     const { key, metadata } = req.body;
-    const record = await Video.create({ ...metadata, folder: key });
-    console.log(record);
+    await Video.create({ ...metadata, folder: key });
+    videoStore.push({
+      title: metadata.title,
+      description: metadata.description,
+      userid: metadata.userid,
+    });
     return res.sendStatus(200);
   } catch (error) {
     console.log(error);
