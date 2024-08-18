@@ -1,14 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { SECRET_SALT } from "../..";
-
-export type tokenType = {
-  userId: string;
-  email: string;
-  name: string;
-  iat: number;
-  exp: number;
-};
+import { tokenType } from "../types";
 
 const validateToken = (req: Request, res: Response, next: NextFunction) => {
   let token = req.headers.authorization;

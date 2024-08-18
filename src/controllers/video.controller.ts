@@ -1,9 +1,9 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client, videoStore } from "../..";
-import { tokenType } from "../middlewares/auth.middleware";
 import { Request, Response } from "express";
 import { Video } from "../models/models";
+import { tokenType } from "../types";
 
 const GetPresignedUrl = async (req: Request, res: Response) => {
   try {
@@ -66,10 +66,12 @@ const CreateVideo = async (req: Request, res: Response) => {
   }
 };
 
-const GetUserVideos = async (req: Request, res: Response) => {
+const GetVideos = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body.user as tokenType;
-    const videos = await Video.find({ userid: userId }).sort({ createdAt: -1 });
+    const videos = await Video.find({ userid: userId })
+      .select("-__v -updatedAt -filename -filetype -filesize")
+      .sort({ createdAt: -1 });
     return res.status(200).json(videos);
   } catch (error) {
     console.error("Error fetching user videos:", error);
@@ -78,4 +80,19 @@ const GetUserVideos = async (req: Request, res: Response) => {
       .send({ message: "Error Occured , Please Try Again!", error });
   }
 };
-export { GetPresignedUrl, CreateVideo, GetUserVideos };
+
+const GetVideosByID = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const videos = await Video.find({ userid: id })
+      .select("-__v -updatedAt -filename -filetype -filesize")
+      .sort({ createdAt: -1 });
+    return res.status(200).json(videos);
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    return res
+      .status(500)
+      .send({ message: "Error Occured , Please Try Again!", error });
+  }
+};
+export { GetPresignedUrl, CreateVideo, GetVideos, GetVideosByID };

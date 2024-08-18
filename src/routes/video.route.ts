@@ -3,13 +3,15 @@ import { validateToken } from "../middlewares/auth.middleware";
 import {
   CreateVideo,
   GetPresignedUrl,
-  GetUserVideos,
+  GetVideos,
+  GetVideosByID,
 } from "../controllers/video.controller";
 
 const VideoRouter = express.Router();
 
 VideoRouter.post("/getPresignedUrl", validateToken, GetPresignedUrl);
 VideoRouter.post("/create", CreateVideo);
-VideoRouter.get("/list", validateToken, GetUserVideos);
+VideoRouter.get("/getVideos", validateToken, GetVideos);
+VideoRouter.get("/getVideosByID/:id", validateToken, GetVideosByID);
 
 export default VideoRouter;

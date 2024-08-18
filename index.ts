@@ -5,7 +5,8 @@ import AuthRouter from "./src/routes/auth.route";
 import { connect } from "mongoose";
 import { S3Client } from "@aws-sdk/client-s3";
 import VideoRouter from "./src/routes/video.route";
-import { tokenType, validateToken } from "./src/middlewares/auth.middleware";
+import { validateToken } from "./src/middlewares/auth.middleware";
+import { metaImage, metaVideo, tokenType } from "./src/types";
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -18,8 +19,10 @@ export const s3Client = new S3Client({
     secretAccessKey: process.env.SECRET_ACCESS_KEY!,
   },
 });
-type meta = { userid: string; description: string; title: string };
-export const videoStore: meta[] = [];
+
+export const videoStore: metaVideo[] = [];
+
+export const imageStore: metaImage[] = [];
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -44,6 +47,24 @@ app.post("/poll/video", validateToken, (req: Request, res: Response) => {
 
   if (videoIndex !== -1) {
     videoStore.splice(videoIndex, 1);
+    return res.sendStatus(200);
+  }
+  return res.sendStatus(404);
+});
+
+app.post("/poll/image", validateToken, (req: Request, res: Response) => {
+  const { userId } = req.body.user as tokenType;
+  const { filename, filesize } = req.body;
+
+  const imageIndex = imageStore.findIndex(
+    (image) =>
+      image.filename === filename &&
+      image.filesize === filesize &&
+      image.userid === userId,
+  );
+
+  if (imageIndex !== -1) {
+    imageStore.splice(imageIndex, 1);
     return res.sendStatus(200);
   }
   return res.sendStatus(404);

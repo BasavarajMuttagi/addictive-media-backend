@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import { sign } from "jsonwebtoken";
-import { s3Client, SECRET_SALT } from "../..";
+import { imageStore, s3Client, SECRET_SALT } from "../..";
 import { User } from "../models/models";
 import { UserSignUpType, UserLoginType } from "../zod/schema";
-import { tokenType } from "../middlewares/auth.middleware";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createTransport } from "nodemailer";
+import { tokenType } from "../types";
 
 const SignUpUser = async (req: Request, res: Response) => {
   try {
@@ -138,6 +138,7 @@ const UpdatePhotoUrl = async (req: Request, res: Response) => {
     await User.findByIdAndUpdate(metadata.userid, {
       $set: { photoUrl },
     });
+    imageStore.push(metadata);
     return res.sendStatus(200);
   } catch (error) {
     console.log(error);
@@ -188,12 +189,50 @@ const GetPresignedUrlForPhoto = async (req: Request, res: Response) => {
   }
 };
 
+const GetProfile = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body.user as tokenType;
+
+    const user = await User.findById(userId).select(
+      "-__v -updatedAt -password",
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ message: "Error Occured , Please Try Again!" });
+  }
+};
+
+const GetProfileByID = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+
+    const user = await User.findById(id).select("-__v -updatedAt -password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ message: "Error Occured , Please Try Again!" });
+  }
+};
+
 export {
   SignUpUser,
   LoginUser,
   UpdateUserBio,
   UpdatePhotoUrl,
   GetPresignedUrlForPhoto,
+  GetProfile,
+  GetProfileByID,
 };
 
 function generateRandomPassword(length = 12) {
