@@ -12,7 +12,7 @@ const GetPresignedUrl = async (req: Request, res: Response) => {
 
     if (!userId || !fileName || !fileType || !fileSize) {
       return res.status(400).json({
-        error: "userId, fileName, fileType, and fileSize are required",
+        message: "userId, fileName, fileType, and fileSize are required",
       });
     }
     const MAX_VIDEO_SIZE = 6 * 1024 * 1024;
@@ -29,7 +29,7 @@ const GetPresignedUrl = async (req: Request, res: Response) => {
     if (isVideo && fileSize > MAX_VIDEO_SIZE) {
       return res
         .status(400)
-        .json({ error: "Video size exceeds the 6 MB limit" });
+        .json({ messsage: "Video size exceeds the 6 MB limit" });
     }
 
     const command = new PutObjectCommand({

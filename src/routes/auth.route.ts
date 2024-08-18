@@ -5,6 +5,7 @@ import {
   LoginUser,
   UpdateUserBio,
   UpdatePhotoUrl,
+  GetPresignedUrlForPhoto,
 } from "../controllers/auth.controller";
 import { UserLoginSchema, UserSignUpSchema } from "../zod/schema";
 import { validateToken } from "../middlewares/auth.middleware";
@@ -15,6 +16,6 @@ AuthRouter.post("/signup", validate(UserSignUpSchema), SignUpUser);
 AuthRouter.post("/login", validate(UserLoginSchema), LoginUser);
 AuthRouter.post("/bio/update", validateToken, UpdateUserBio);
 AuthRouter.post("/photo/update", UpdatePhotoUrl);
-AuthRouter.post("/getPresignedUrl", UpdatePhotoUrl);
+AuthRouter.post("/getPresignedUrl", validateToken, GetPresignedUrlForPhoto);
 
 export default AuthRouter;

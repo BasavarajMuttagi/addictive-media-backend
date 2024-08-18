@@ -11,7 +11,7 @@ const validate = (schema: AnyZodObject | ZodEffects<AnyZodObject>) => {
       }
       next();
     } catch (error) {
-      res.status(400).send({ error: error });
+      res.status(400).send({ message: error });
     }
   };
 };

@@ -94,9 +94,11 @@ const LoginUser = async (req: Request, res: Response) => {
     );
     res.status(200).send({
       user: {
-        fullname,
+        displayName: fullname,
         email: UserRecord.email,
         phone: UserRecord.phone,
+        photoUrl: UserRecord.photoUrl,
+        bio: UserRecord.bio,
       },
       token: token,
       message: "logged in successfully",
@@ -113,15 +115,14 @@ const UpdateUserBio = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body.user as tokenType;
     const { bio } = req.body;
-    console.log(bio);
     if (!bio) {
-      return res.status(400).json({ error: "Bio is required" });
+      return res.status(400).json({ message: "Bio is required" });
     }
     const updatedUser = await User.findByIdAndUpdate(userId, { $set: { bio } });
     if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
-    return res.sendStatus(200);
+    return res.status(200).json({ bio });
   } catch (error) {
     console.log(error);
     return res
@@ -134,7 +135,7 @@ const UpdatePhotoUrl = async (req: Request, res: Response) => {
   try {
     const { key, metadata } = req.body;
     const photoUrl = key;
-    await User.findByIdAndUpdate(metadata.userId, {
+    await User.findByIdAndUpdate(metadata.userid, {
       $set: { photoUrl },
     });
     return res.sendStatus(200);
@@ -151,7 +152,7 @@ const GetPresignedUrlForPhoto = async (req: Request, res: Response) => {
 
     if (!userId || !fileName || !fileType || !fileSize) {
       return res.status(400).json({
-        error: "userId, fileName, fileType, and fileSize are required",
+        message: "userId, fileName, fileType, and fileSize are required",
       });
     }
     const MAX_IMAGE_SIZE = 1 * 1024 * 1024;
@@ -166,7 +167,7 @@ const GetPresignedUrlForPhoto = async (req: Request, res: Response) => {
     if (isVideo && fileSize > MAX_IMAGE_SIZE) {
       return res
         .status(400)
-        .json({ error: "Image size exceeds the 1 MB limit" });
+        .json({ message: "Image size exceeds the 1 MB limit" });
     }
 
     const command = new PutObjectCommand({
