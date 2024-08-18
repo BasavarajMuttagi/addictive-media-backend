@@ -7,17 +7,19 @@ import { UserSignUpType, UserLoginType } from "../zod/schema";
 import { tokenType } from "../middlewares/auth.middleware";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createTransport } from "nodemailer";
 
 const SignUpUser = async (req: Request, res: Response) => {
   try {
-    const { firstname, lastname, email, phone, password } =
-      req.body as UserSignUpType;
+    const { firstname, lastname, email, phone } = req.body as UserSignUpType;
     const isUserExists = await User.exists({ email });
     if (isUserExists) {
       res.status(409).send({ message: "Account Exists!" });
       return;
     }
+    const password = generateRandomPassword(12);
     const encryprtedPassword = await bcrypt.hash(password, 10);
+
     const record = await User.create({
       firstname,
       lastname,
@@ -25,7 +27,36 @@ const SignUpUser = async (req: Request, res: Response) => {
       phone,
       password: encryprtedPassword,
     });
-    res.status(201).send({ message: "Account Created SuccessFully!", record });
+
+    const transporter = createTransport({
+      host: process.env.HOST,
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.SECRET,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Your New Account Password",
+      html: `<p>Your account has been created. Here is your password: <strong>${password}</strong></p>`,
+    };
+
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.log(error);
+        return res
+          .status(500)
+          .send({ message: "Failed to send password email" });
+      }
+    });
+
+    return res
+      .status(201)
+      .send({ message: "Account Created SuccessFully!", record });
   } catch (error) {
     return res
       .status(500)
@@ -155,6 +186,7 @@ const GetPresignedUrlForPhoto = async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 };
+
 export {
   SignUpUser,
   LoginUser,
@@ -162,3 +194,15 @@ export {
   UpdatePhotoUrl,
   GetPresignedUrlForPhoto,
 };
+
+function generateRandomPassword(length = 12) {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_-+=?";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += characters.charAt(
+      Math.floor(Math.random() * characters.length),
+    );
+  }
+  return password;
+}
