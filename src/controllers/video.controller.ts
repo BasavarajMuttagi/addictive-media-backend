@@ -95,4 +95,80 @@ const GetVideosByID = async (req: Request, res: Response) => {
       .send({ message: "Error Occured , Please Try Again!", error });
   }
 };
-export { GetPresignedUrl, CreateVideo, GetVideos, GetVideosByID };
+
+const GetVideoListWithUser = async (req: Request, res: Response) => {
+  try {
+    const result = await Video.aggregate([
+      {
+        $group: {
+          _id: "$userid",
+          videos: {
+            $push: "$$ROOT",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $sort: {
+          createdAt: 1,
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          videos: {
+            _id: 1,
+            folder: 1,
+            userid: 1,
+            description: 1,
+            title: 1,
+          },
+          user: {
+            _id: 1,
+            firstname: 1,
+            lastname: 1,
+            photoUrl: 1,
+          },
+          _id: 0,
+        },
+      },
+      {
+        $project: {
+          videos: {
+            $slice: ["$videos", 5],
+          },
+          user: {
+            _id: 1,
+            firstname: 1,
+            lastname: 1,
+            photoUrl: 1,
+          },
+          _id: 0,
+        },
+      },
+    ]);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    return res
+      .status(500)
+      .send({ message: "Error Occured , Please Try Again!", error });
+  }
+};
+export {
+  GetPresignedUrl,
+  CreateVideo,
+  GetVideos,
+  GetVideosByID,
+  GetVideoListWithUser,
+};
