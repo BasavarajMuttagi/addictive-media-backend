@@ -44,14 +44,15 @@ const SignUpUser = async (req: Request, res: Response) => {
       subject: "Your New Account Password",
       html: `<p>Your account has been created. Here is your password: <strong>${password}</strong></p>`,
     };
-
-    transporter.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.log(error);
-        return res
-          .status(500)
-          .send({ message: "Failed to send password email" });
-      }
+    await new Promise<void>((resolve, reject) => {
+      transporter.sendMail(mailOptions, (error) => {
+        if (error) {
+          console.error("Failed to send password email:", error);
+          reject(new Error("Failed to send password email"));
+        } else {
+          resolve();
+        }
+      });
     });
 
     return res
